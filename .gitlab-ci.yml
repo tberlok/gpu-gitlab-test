@@ -31,3 +31,5 @@ gpu-job:
     - build  # Use the built Conda environment
   only:
     - main
+
+    
