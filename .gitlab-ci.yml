@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: continuumio/miniconda3  # Using a Miniconda-based image
+  tags:
+    - gpu
+  script:
+    - conda create --name myenv python=3.9 -y
+    - conda activate myenv
+    - conda install -c numba cupy cudatoolkit=11.7 -y
+    - conda list  # Check installed packages
+  artifacts:
+    paths:
+      - /opt/conda/envs/myenv  # Save the environment for later stages
+    expire_in: 1h  # Keep for 1 hour
+  only:
+    - main  # Run only on the main branch
+
+gpu-job:
+  stage: test
+  image: nvidia/cuda:11.7.1-runtime-ubuntu22.04  # Use a CUDA runtime image
+  tags:
+    - gpu
+  script:
+    - nvidia-smi  # Check if GPU is available
+    - conda run --name myenv python -c "import cupy; print(cupy.cuda.is_available())"
+  dependencies:
+    - build  # Use the built Conda environment
+  only:
+    - main
